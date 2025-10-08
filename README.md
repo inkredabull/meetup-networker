@@ -154,4 +154,4 @@ Tests cover:
 
 ## License
 
-ISC
+MIT
