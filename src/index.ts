@@ -77,7 +77,7 @@ program
           }
           console.log(`   Location: ${profile.location || 'N/A'}`);
           if (profile.isTargetContact) {
-            console.log(`   Status: ✅ FOLLOW UP - Matches target pattern (VC/CEO/Partner/Investor)`);
+            console.log(`   Status: ✅ FOLLOW UP - Matches target pattern (C-Suite/VC/Partner/Investor)`);
           } else {
             console.log(`   Status: ⏭️  SKIP - Does not match target pattern`);
           }

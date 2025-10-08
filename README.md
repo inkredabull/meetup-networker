@@ -81,7 +81,7 @@ The tool automatically identifies high-priority contacts based on their job titl
 - **Partner** - VCs, law firms, consulting partners
 - **Capital** - Anyone with "Capital" in their title (VCs, investment firms)
 - **VC** - Venture Capitalists
-- **CEO** - Chief Executive Officers
+- **C-Suite Executives** - CEO, CTO, CFO, COO, CMO, CIO, CPO, and any "Chief X Officer" title
 - **Investor** - Angel investors, institutional investors
 
 ### Output Indicators
@@ -98,7 +98,7 @@ The tool automatically identifies high-priority contacts based on their job titl
    Current Title: Managing Partner
    Current Company: XYZ Capital
    Location: San Francisco, CA
-   Status: ✅ FOLLOW UP - Matches target pattern (VC/CEO/Partner/Investor)
+   Status: ✅ FOLLOW UP - Matches target pattern (C-Suite/VC/Partner/Investor)
 
 2. Jane Smith
    Current Title: Software Engineer

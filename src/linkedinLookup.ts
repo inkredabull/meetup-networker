@@ -2,8 +2,9 @@ import axios from 'axios';
 import { ParsedName } from './nameParser.js';
 import { getCachedLookup, saveLookupToCache } from './cache.js';
 
-// Pattern to identify target contacts (VCs, CEOs, Partners, Investors)
-const TARGET_CONTACT_PATTERN = /Partner|Capital|VC|CEO|Investor/i;
+// Pattern to identify target contacts (VCs, C-suite executives, Partners, Investors)
+// Matches: Partner, Capital, VC, Investor, C-level titles (CEO, CTO, CFO, etc.), Chief X Officer
+const TARGET_CONTACT_PATTERN = /Partner|Capital|VC|Investor|C[TEOFMPI]O|Chief\s+\w+\s+Officer/i;
 
 export interface LinkedInProfile {
   name: string;
