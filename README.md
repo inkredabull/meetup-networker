@@ -95,12 +95,14 @@ The tool automatically identifies high-priority contacts based on their job titl
 
 ```
 1. John Doe [⭐ TARGET CONTACT]
-   Job Title: Managing Partner at XYZ Capital
+   Current Title: Managing Partner
+   Current Company: XYZ Capital
    Location: San Francisco, CA
    Status: ✅ FOLLOW UP - Matches target pattern (VC/CEO/Partner/Investor)
 
 2. Jane Smith
-   Job Title: Software Engineer at Tech Corp
+   Current Title: Software Engineer
+   Current Company: Tech Corp
    Location: San Jose, CA
    Status: ⏭️  SKIP - Does not match target pattern
 ```

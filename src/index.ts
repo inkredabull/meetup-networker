@@ -71,7 +71,10 @@ program
         if (profile.error) {
           console.log(`   Error: ${profile.error}`);
         } else {
-          console.log(`   Job Title: ${profile.jobTitle || 'N/A'}`);
+          console.log(`   Current Title: ${profile.currentTitle || 'N/A'}`);
+          if (profile.currentCompany) {
+            console.log(`   Current Company: ${profile.currentCompany}`);
+          }
           console.log(`   Location: ${profile.location || 'N/A'}`);
           if (profile.isTargetContact) {
             console.log(`   Status: ✅ FOLLOW UP - Matches target pattern (VC/CEO/Partner/Investor)`);

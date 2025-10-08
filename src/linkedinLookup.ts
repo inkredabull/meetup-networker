@@ -7,7 +7,8 @@ const TARGET_CONTACT_PATTERN = /Partner|Capital|VC|CEO|Investor/i;
 
 export interface LinkedInProfile {
   name: string;
-  jobTitle?: string;
+  currentTitle?: string;
+  currentCompany?: string;
   location?: string;
   isTargetContact?: boolean;
   error?: string;
@@ -166,7 +167,8 @@ export async function lookupLinkedInProfile(
     const profile = profileResponse.data;
 
     // Step 3: Find the most recent experience (where ends_at is null)
-    let currentJobTitle: string | undefined;
+    let currentTitle: string | undefined;
+    let currentCompany: string | undefined;
     let currentLocation: string | undefined;
 
     if (profile.experiences && profile.experiences.length > 0) {
@@ -174,24 +176,31 @@ export async function lookupLinkedInProfile(
       const currentExperience = profile.experiences.find(exp => exp.ends_at === null);
 
       if (currentExperience) {
-        currentJobTitle = `${currentExperience.title} at ${currentExperience.company}`;
+        currentTitle = currentExperience.title;
+        currentCompany = currentExperience.company;
         currentLocation = currentExperience.location || profile.location_str;
       } else {
         // If no current position, use the most recent one (first in the list)
         const recentExperience = profile.experiences[0];
-        currentJobTitle = `${recentExperience.title} at ${recentExperience.company}`;
+        currentTitle = recentExperience.title;
+        currentCompany = recentExperience.company;
         currentLocation = recentExperience.location || profile.location_str;
       }
     }
 
-    const jobTitleToUse = currentJobTitle || profile.occupation || 'Not available';
+    // Fallback to occupation if no experience found
+    const titleToUse = currentTitle || profile.occupation || 'Not available';
+    const companyToUse = currentCompany;
 
     // Test if this is a target contact (VC, CEO, Partner, Investor, etc.)
-    const isTargetContact = TARGET_CONTACT_PATTERN.test(jobTitleToUse);
+    // Check both title and company for matches
+    const combinedText = `${titleToUse} ${companyToUse || ''}`;
+    const isTargetContact = TARGET_CONTACT_PATTERN.test(combinedText);
 
     const result: LinkedInProfile = {
       name: profile.full_name || `${firstName} ${lastName}`,
-      jobTitle: jobTitleToUse,
+      currentTitle: titleToUse,
+      currentCompany: companyToUse,
       location: currentLocation || profile.location_str || location,
       isTargetContact
     };
