@@ -101,10 +101,11 @@ export async function getCreditBalance(): Promise<number | null> {
  */
 export async function lookupLinkedInProfile(
   firstName: string,
-  lastName: string
+  lastName: string,
+  eventName: string
 ): Promise<LinkedInProfile> {
   // Check cache first
-  const cached = getCachedLookup(firstName, lastName);
+  const cached = getCachedLookup(firstName, lastName, eventName);
   if (cached) {
     console.log(`  [CACHED] ${firstName} ${lastName}`);
     return cached;
@@ -150,7 +151,7 @@ export async function lookupLinkedInProfile(
         error: 'Not found'
       };
       // Cache failed lookup to avoid repeated API calls
-      saveLookupToCache(firstName, lastName, notFoundResult);
+      saveLookupToCache(firstName, lastName, notFoundResult, eventName);
       return notFoundResult;
     }
 
@@ -162,7 +163,7 @@ export async function lookupLinkedInProfile(
         error: 'Not found'
       };
       // Cache failed lookup to avoid repeated API calls
-      saveLookupToCache(firstName, lastName, noUrlResult);
+      saveLookupToCache(firstName, lastName, noUrlResult, eventName);
       return noUrlResult;
     }
 
@@ -223,7 +224,7 @@ export async function lookupLinkedInProfile(
     };
 
     // Save successful lookup to cache
-    saveLookupToCache(firstName, lastName, result);
+    saveLookupToCache(firstName, lastName, result, eventName);
 
     return result;
 
@@ -246,7 +247,8 @@ export async function lookupLinkedInProfile(
  * Lookup LinkedIn profiles for all valid names
  */
 export async function lookupProfiles(
-  parsedNames: ParsedName[]
+  parsedNames: ParsedName[],
+  eventName: string
 ): Promise<LinkedInProfile[]> {
   const results: LinkedInProfile[] = [];
 
@@ -254,7 +256,8 @@ export async function lookupProfiles(
     if (parsed.isValid && parsed.firstName && parsed.lastName) {
       const profile = await lookupLinkedInProfile(
         parsed.firstName,
-        parsed.lastName
+        parsed.lastName,
+        eventName
       );
       results.push(profile);
     } else {

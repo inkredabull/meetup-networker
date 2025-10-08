@@ -5,11 +5,22 @@ import { LinkedInProfile } from './profileLookup.js';
 const CACHE_DIR = 'logs';
 
 /**
- * Ensure the cache directory exists
+ * Normalize event name for use as a directory name
  */
-function ensureCacheDir(): void {
-  if (!existsSync(CACHE_DIR)) {
-    mkdirSync(CACHE_DIR, { recursive: true });
+function normalizeEventName(eventName: string): string {
+  return eventName
+    .toLowerCase()
+    .replace(/[^a-z0-9-]/g, '-')
+    .replace(/-+/g, '-');
+}
+
+/**
+ * Ensure the cache directory exists for a given event
+ */
+function ensureCacheDir(eventName: string): void {
+  const eventDir = join(CACHE_DIR, normalizeEventName(eventName));
+  if (!existsSync(eventDir)) {
+    mkdirSync(eventDir, { recursive: true });
   }
 }
 
@@ -31,11 +42,13 @@ function getCacheKey(firstName: string, lastName: string): string {
  */
 export function getCachedLookup(
   firstName: string,
-  lastName: string
+  lastName: string,
+  eventName: string
 ): LinkedInProfile | null {
-  ensureCacheDir();
+  ensureCacheDir(eventName);
 
-  const cacheFile = join(CACHE_DIR, getCacheKey(firstName, lastName));
+  const eventDir = join(CACHE_DIR, normalizeEventName(eventName));
+  const cacheFile = join(eventDir, getCacheKey(firstName, lastName));
 
   if (!existsSync(cacheFile)) {
     return null;
@@ -61,11 +74,13 @@ export function getCachedLookup(
 export function saveLookupToCache(
   firstName: string,
   lastName: string,
-  profile: LinkedInProfile
+  profile: LinkedInProfile,
+  eventName: string
 ): void {
-  ensureCacheDir();
+  ensureCacheDir(eventName);
 
-  const cacheFile = join(CACHE_DIR, getCacheKey(firstName, lastName));
+  const eventDir = join(CACHE_DIR, normalizeEventName(eventName));
+  const cacheFile = join(eventDir, getCacheKey(firstName, lastName));
 
   try {
     const cacheData = {

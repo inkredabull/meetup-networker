@@ -39,7 +39,7 @@ program
 
       // Lookup profiles
       console.log('Looking up LinkedIn profiles...\n');
-      const profiles = await lookupProfiles(parsedNames);
+      const profiles = await lookupProfiles(parsedNames, eventInfo.eventName);
 
       // Check credit balance after processing
       console.log('\nChecking credit balance...');
