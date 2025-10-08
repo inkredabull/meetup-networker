@@ -98,12 +98,14 @@ The tool automatically identifies high-priority contacts based on their job titl
    Current Title: Managing Partner
    Current Company: XYZ Capital
    Location: San Francisco, CA
+   LinkedIn: https://www.linkedin.com/in/johndoe
    Status: ✅ FOLLOW UP - Matches target pattern (C-Suite/VC/Partner/Investor)
 
 2. Jane Smith
    Current Title: Software Engineer
    Current Company: Tech Corp
    Location: San Jose, CA
+   LinkedIn: https://www.linkedin.com/in/janesmith
    Status: ⏭️  SKIP - Does not match target pattern
 ```
 

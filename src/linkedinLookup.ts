@@ -16,6 +16,7 @@ export interface LinkedInProfile {
   currentTitle?: string;
   currentCompany?: string;
   location?: string;
+  linkedinUrl?: string;
   isTargetContact?: boolean;
   error?: string;
 }
@@ -208,6 +209,7 @@ export async function lookupLinkedInProfile(
       currentTitle: titleToUse,
       currentCompany: companyToUse,
       location: currentLocation || profile.location_str || location,
+      linkedinUrl: linkedinProfileUrl,
       isTargetContact
     };
 

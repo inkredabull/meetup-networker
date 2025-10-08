@@ -76,6 +76,9 @@ program
             console.log(`   Current Company: ${profile.currentCompany}`);
           }
           console.log(`   Location: ${profile.location || 'N/A'}`);
+          if (profile.linkedinUrl) {
+            console.log(`   LinkedIn: ${profile.linkedinUrl}`);
+          }
           if (profile.isTargetContact) {
             console.log(`   Status: ✅ FOLLOW UP - Matches target pattern (C-Suite/VC/Partner/Investor)`);
           } else {
