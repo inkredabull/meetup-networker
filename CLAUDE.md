@@ -1,0 +1,1 @@
+../five-second-resume-pro-03ae271f/CLAUDE.md
