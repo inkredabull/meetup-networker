@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { LinkedInProfile } from './profileLookup.js';
 
@@ -38,6 +38,7 @@ function getCacheKey(firstName: string, lastName: string): string {
 
 /**
  * Get cached lookup result for a person
+ * Searches across all event subdirectories to find any cached profile
  * Returns null if no cache exists or if the cache is invalid
  */
 export function getCachedLookup(
@@ -47,23 +48,43 @@ export function getCachedLookup(
 ): LinkedInProfile | null {
   ensureCacheDir(eventName);
 
-  const eventDir = join(CACHE_DIR, normalizeEventName(eventName));
-  const cacheFile = join(eventDir, getCacheKey(firstName, lastName));
-
-  if (!existsSync(cacheFile)) {
+  // Check if logs directory exists
+  if (!existsSync(CACHE_DIR)) {
     return null;
   }
 
-  try {
-    const data = readFileSync(cacheFile, 'utf-8');
-    const cached: LinkedInProfile & { cachedAt: string } = JSON.parse(data);
+  const cacheKey = getCacheKey(firstName, lastName);
 
-    // Return the profile without the cachedAt metadata
-    const { cachedAt, ...profile } = cached;
-    return profile;
+  try {
+    // Read all subdirectories in logs/
+    const eventDirs = readdirSync(CACHE_DIR, { withFileTypes: true })
+      .filter(dirent => dirent.isDirectory())
+      .map(dirent => dirent.name);
+
+    // Search for the profile file across all event directories
+    for (const eventDir of eventDirs) {
+      const cacheFile = join(CACHE_DIR, eventDir, cacheKey);
+
+      if (existsSync(cacheFile)) {
+        try {
+          const data = readFileSync(cacheFile, 'utf-8');
+          const cached: LinkedInProfile & { cachedAt: string } = JSON.parse(data);
+
+          // Return the profile without the cachedAt metadata
+          const { cachedAt, ...profile } = cached;
+          return profile;
+        } catch (error) {
+          // If this specific file is invalid, continue searching other directories
+          continue;
+        }
+      }
+    }
+
+    // No cached profile found in any event directory
+    return null;
   } catch (error) {
-    // If we can't read or parse the cache, treat it as a cache miss
-    console.warn(`  Warning: Could not read cache for ${firstName} ${lastName}`);
+    // If we can't read the logs directory, treat it as a cache miss
+    console.warn(`  Warning: Could not search cache for ${firstName} ${lastName}`);
     return null;
   }
 }
