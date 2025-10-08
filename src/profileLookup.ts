@@ -147,7 +147,7 @@ export async function lookupLinkedInProfile(
     if (!searchResponse.data.results || searchResponse.data.results.length === 0) {
       return {
         name: `${firstName} ${lastName}`,
-        error: 'No LinkedIn profile found'
+        error: `Couldn't find profile with given parameters (name: ${firstName} ${lastName}, city: ${searchCity})`
       };
     }
 
