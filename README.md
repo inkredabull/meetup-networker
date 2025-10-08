@@ -135,11 +135,38 @@ The cache persists across runs, so running the same name list multiple times wil
 
 ## Environment Variables
 
-Required environment variables in `.env`:
+Environment variables in `.env`:
 
 ```
+# Required: EnrichLayer API Bearer Token
 ENRICHLAYER_API_TOKEN=your_token_here
+
+# Optional: Geographic region to filter searches (default: California)
+SEARCH_REGION=California
+
+# Optional: Target contact pattern (regex) to identify high-priority follow-ups
+# Default matches: C-Suite (CEO, CTO, etc.), VCs, Partners, Investors, Engineering Leadership
+TARGET_CONTACT_PATTERN=Partner|Capital|VC|Investor|C[TEOFMPI]O|Chief\s+\w+\s+Officer|VP|VPE|Director|DIR\s+ENG
 ```
+
+### Customizing Target Contact Pattern
+
+You can customize which job titles are flagged as target contacts by modifying the `TARGET_CONTACT_PATTERN` in your `.env` file. The pattern is a regular expression (case-insensitive) that tests both the job title and company name.
+
+**Examples:**
+- To only match VCs: `VC|Venture Capital`
+- To match executives and directors: `C[TEOFMPI]O|Director|VP`
+- To match specific roles: `Engineer|Product Manager|Designer`
+
+The default pattern includes:
+- **Partner** - VCs, law firms, consulting partners
+- **Capital** - Investment firms
+- **VC** - Venture Capitalists
+- **Investor** - Angel investors, institutional investors
+- **C[TEOFMPI]O** - CEO, CTO, CFO, COO, CMO, CIO, CPO
+- **Chief\s+\w+\s+Officer** - Any "Chief X Officer" title
+- **VP|VPE** - Vice Presidents, VP of Engineering
+- **Director|DIR\s+ENG** - Directors, Director of Engineering
 
 ## Project Structure
 

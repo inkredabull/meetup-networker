@@ -4,7 +4,12 @@ import { getCachedLookup, saveLookupToCache } from './cache.js';
 
 // Pattern to identify target contacts (VCs, C-suite executives, Partners, Investors)
 // Matches: Partner, Capital, VC, Investor, C-level titles (CEO, CTO, CFO, etc.), Chief X Officer
-const TARGET_CONTACT_PATTERN = /Partner|Capital|VC|Investor|C[TEOFMPI]O|Chief\s+\w+\s+Officer/i;
+// Can be customized via TARGET_CONTACT_PATTERN environment variable
+const DEFAULT_TARGET_PATTERN = 'Partner|Capital|VC|Investor|C[TEOFMPI]O|Chief\\s+\\w+\\s+Officer|VP|VPE|Director|DIR\\s+ENG';
+const TARGET_CONTACT_PATTERN = new RegExp(
+  process.env.TARGET_CONTACT_PATTERN || DEFAULT_TARGET_PATTERN,
+  'i'
+);
 
 export interface LinkedInProfile {
   name: string;
@@ -124,7 +129,7 @@ export async function lookupLinkedInProfile(
         params: {
           first_name: firstName,
           last_name: lastName,
-          region: 'California',
+          region: process.env.SEARCH_REGION || 'California',
           page_size: 1
         },
         headers: {
