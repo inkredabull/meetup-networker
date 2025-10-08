@@ -22,7 +22,7 @@ export interface LinkedInProfile {
 }
 
 interface EnrichLayerCreditBalance {
-  balance: number;
+  credit_balance: number;
 }
 
 interface EnrichLayerSearchResult {
@@ -77,7 +77,7 @@ export async function getCreditBalance(): Promise<number | null> {
       }
     );
 
-    return response.data.balance;
+    return response.data.credit_balance;
   } catch (error) {
     if (axios.isAxiosError(error)) {
       console.error(`Failed to fetch credit balance: ${error.response?.status} - ${error.response?.statusText || error.message}`);
