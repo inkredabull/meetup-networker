@@ -8,7 +8,7 @@ A TypeScript CLI tool that parses a list of names and looks up LinkedIn profiles
 - Identifies entries with both first and last names
 - Skips entries with only a single name
 - Looks up current job titles and locations via EnrichLayer
-- Filters by region (California)
+- Filters by city (San Francisco)
 - Automatically detects event name from filename
 - **Target contact filtering** - Identifies VCs, CEOs, Partners, and Investors for follow-up
 - **Local caching** - Saves lookups to avoid burning credits on repeated queries
@@ -67,7 +67,7 @@ The tool will:
 ## How It Works
 
 1. **Cache Check**: First checks the `logs/` directory for cached results
-2. **Search**: If not cached, searches EnrichLayer for people by first name, last name, and region (California)
+2. **Search**: If not cached, searches EnrichLayer for people by first name, last name, and city (San Francisco)
 3. **Profile Fetch**: Retrieves detailed LinkedIn profile information
 4. **Current Role**: Identifies the most recent job (where `ends_at` is null)
 5. **Target Match**: Tests job title against pattern to identify follow-up priority contacts
@@ -143,8 +143,8 @@ Environment variables in `.env`:
 # Required: EnrichLayer API Bearer Token
 ENRICHLAYER_API_TOKEN=your_token_here
 
-# Optional: Geographic region to filter searches (default: California)
-SEARCH_REGION=California
+# Optional: City to filter searches (default: San Francisco)
+SEARCH_CITY=San Francisco
 
 # Optional: Target contact pattern (regex) to identify high-priority follow-ups
 # Default matches: C-Suite (CEO, CTO, etc.), VCs, Partners, Investors, Engineering Leadership
