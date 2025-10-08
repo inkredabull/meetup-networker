@@ -177,7 +177,7 @@ src/
 ├── index.ts           # CLI entry point
 ├── nameParser.ts      # Name parsing logic
 ├── eventParser.ts     # Event name extraction from filename
-├── linkedinLookup.ts  # EnrichLayer API integration
+├── profileLookup.ts   # EnrichLayer API integration
 └── cache.ts           # Local caching for lookup results
 logs/                  # Cached lookup results (auto-created)
 examples/

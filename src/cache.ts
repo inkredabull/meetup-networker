@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
-import { LinkedInProfile } from './linkedinLookup.js';
+import { LinkedInProfile } from './profileLookup.js';
 
 const CACHE_DIR = 'logs';
 

@@ -4,7 +4,7 @@ import 'dotenv/config';
 import { readFileSync } from 'fs';
 import { Command } from 'commander';
 import { parseNameList } from './nameParser.js';
-import { lookupProfiles, getCreditBalance } from './linkedinLookup.js';
+import { lookupProfiles, getCreditBalance } from './profileLookup.js';
 import { parseEventFromFileName } from './eventParser.js';
 
 const program = new Command();
