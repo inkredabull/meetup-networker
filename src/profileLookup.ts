@@ -145,19 +145,25 @@ export async function lookupLinkedInProfile(
 
     // Check if we got any results
     if (!searchResponse.data.results || searchResponse.data.results.length === 0) {
-      return {
+      const notFoundResult = {
         name: `${firstName} ${lastName}`,
-        error: `Couldn't find profile with given parameters (name: ${firstName} ${lastName}, city: ${searchCity})`
+        error: 'Not found'
       };
+      // Cache failed lookup to avoid repeated API calls
+      saveLookupToCache(firstName, lastName, notFoundResult);
+      return notFoundResult;
     }
 
     const linkedinProfileUrl = searchResponse.data.results[0].linkedin_profile_url;
 
     if (!linkedinProfileUrl) {
-      return {
+      const noUrlResult = {
         name: `${firstName} ${lastName}`,
-        error: 'No LinkedIn URL in search results'
+        error: 'Not found'
       };
+      // Cache failed lookup to avoid repeated API calls
+      saveLookupToCache(firstName, lastName, noUrlResult);
+      return noUrlResult;
     }
 
     // Step 2: Get detailed profile information
