@@ -10,6 +10,7 @@ A TypeScript CLI tool that parses a list of names and looks up LinkedIn profiles
 - Looks up current job titles and locations via EnrichLayer
 - Filters by region (California)
 - Automatically detects event name from filename
+- **Target contact filtering** - Identifies VCs, CEOs, Partners, and Investors for follow-up
 - **Local caching** - Saves lookups to avoid burning credits on repeated queries
 - **Credit tracking** - Shows before/after credit balance and cost
 
@@ -69,8 +70,40 @@ The tool will:
 2. **Search**: If not cached, searches EnrichLayer for people by first name, last name, and region (California)
 3. **Profile Fetch**: Retrieves detailed LinkedIn profile information
 4. **Current Role**: Identifies the most recent job (where `ends_at` is null)
-5. **Cache Save**: Saves successful lookups to `logs/` for future use
-6. **Display**: Shows name, current job title, and location
+5. **Target Match**: Tests job title against pattern to identify follow-up priority contacts
+6. **Cache Save**: Saves successful lookups to `logs/` for future use
+7. **Display**: Shows name, current job title, location, and follow-up status
+
+## Target Contact Filtering
+
+The tool automatically identifies high-priority contacts based on their job titles. Contacts matching the following patterns are marked as **TARGET CONTACTS** for follow-up:
+
+- **Partner** - VCs, law firms, consulting partners
+- **Capital** - Anyone with "Capital" in their title (VCs, investment firms)
+- **VC** - Venture Capitalists
+- **CEO** - Chief Executive Officers
+- **Investor** - Angel investors, institutional investors
+
+### Output Indicators
+
+- ⭐ **[TARGET CONTACT]** - Appears next to the name
+- ✅ **FOLLOW UP** - Clear action indicator with matching pattern
+- ⏭️ **SKIP** - Non-target contacts
+- **Summary** - Shows count: "Target contacts to follow up: 5/25"
+
+### Example Output
+
+```
+1. John Doe [⭐ TARGET CONTACT]
+   Job Title: Managing Partner at XYZ Capital
+   Location: San Francisco, CA
+   Status: ✅ FOLLOW UP - Matches target pattern (VC/CEO/Partner/Investor)
+
+2. Jane Smith
+   Job Title: Software Engineer at Tech Corp
+   Location: San Jose, CA
+   Status: ⏭️  SKIP - Does not match target pattern
+```
 
 ## Caching
 

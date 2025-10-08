@@ -2,10 +2,14 @@ import axios from 'axios';
 import { ParsedName } from './nameParser.js';
 import { getCachedLookup, saveLookupToCache } from './cache.js';
 
+// Pattern to identify target contacts (VCs, CEOs, Partners, Investors)
+const TARGET_CONTACT_PATTERN = /Partner|Capital|VC|CEO|Investor/i;
+
 export interface LinkedInProfile {
   name: string;
   jobTitle?: string;
   location?: string;
+  isTargetContact?: boolean;
   error?: string;
 }
 
@@ -180,10 +184,16 @@ export async function lookupLinkedInProfile(
       }
     }
 
+    const jobTitleToUse = currentJobTitle || profile.occupation || 'Not available';
+
+    // Test if this is a target contact (VC, CEO, Partner, Investor, etc.)
+    const isTargetContact = TARGET_CONTACT_PATTERN.test(jobTitleToUse);
+
     const result: LinkedInProfile = {
       name: profile.full_name || `${firstName} ${lastName}`,
-      jobTitle: currentJobTitle || profile.occupation || 'Not available',
-      location: currentLocation || profile.location_str || location
+      jobTitle: jobTitleToUse,
+      location: currentLocation || profile.location_str || location,
+      isTargetContact
     };
 
     // Save successful lookup to cache

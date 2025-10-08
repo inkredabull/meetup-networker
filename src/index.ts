@@ -61,18 +61,29 @@ program
 
       // Display results
       console.log(`=== ${eventInfo.eventName} - Results ===\n`);
+
+      // Count target contacts
+      const targetContacts = profiles.filter(p => p.isTargetContact);
+
       profiles.forEach((profile, index) => {
-        console.log(`${index + 1}. ${profile.name}`);
+        const targetIndicator = profile.isTargetContact ? ' [⭐ TARGET CONTACT]' : '';
+        console.log(`${index + 1}. ${profile.name}${targetIndicator}`);
         if (profile.error) {
           console.log(`   Error: ${profile.error}`);
         } else {
           console.log(`   Job Title: ${profile.jobTitle || 'N/A'}`);
           console.log(`   Location: ${profile.location || 'N/A'}`);
+          if (profile.isTargetContact) {
+            console.log(`   Status: ✅ FOLLOW UP - Matches target pattern (VC/CEO/Partner/Investor)`);
+          } else {
+            console.log(`   Status: ⏭️  SKIP - Does not match target pattern`);
+          }
         }
         console.log('');
       });
 
       console.log(`Successfully processed ${profiles.length} profiles`);
+      console.log(`Target contacts to follow up: ${targetContacts.length}/${profiles.length}`);
     } catch (error) {
       if (error instanceof Error) {
         console.error(`Error: ${error.message}`);
