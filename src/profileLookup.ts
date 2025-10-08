@@ -120,6 +120,8 @@ export async function lookupLinkedInProfile(
   }
 
   const searchCity = process.env.SEARCH_CITY || 'San Francisco';
+  // EnrichLayer API expects city value wrapped in quotes
+  const cityParam = `"${searchCity}"`;
 
   try {
     console.log(`  Looking up: ${firstName} ${lastName} (${searchCity})...`);
@@ -131,7 +133,7 @@ export async function lookupLinkedInProfile(
         params: {
           first_name: firstName,
           last_name: lastName,
-          city: searchCity,
+          city: cityParam,
           page_size: 1
         },
         headers: {
