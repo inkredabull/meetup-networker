@@ -93,7 +93,7 @@ export async function getCreditBalance(): Promise<number | null> {
  *
  * This function:
  * 1. Checks local cache first to avoid unnecessary API calls
- * 2. If not cached: Searches for the person by name and region (California)
+ * 2. If not cached: Searches for the person by name and region (from SEARCH_REGION env)
  * 3. Gets the LinkedIn profile URL from the first search result
  * 4. Fetches detailed profile information
  * 5. Extracts the most recent job title (where ends_at is null)
@@ -101,8 +101,7 @@ export async function getCreditBalance(): Promise<number | null> {
  */
 export async function lookupLinkedInProfile(
   firstName: string,
-  lastName: string,
-  location: string = 'San Francisco Bay Area'
+  lastName: string
 ): Promise<LinkedInProfile> {
   // Check cache first
   const cached = getCachedLookup(firstName, lastName);
@@ -120,8 +119,10 @@ export async function lookupLinkedInProfile(
     };
   }
 
+  const searchRegion = process.env.SEARCH_REGION || 'California';
+
   try {
-    console.log(`  Looking up: ${firstName} ${lastName} (${location})...`);
+    console.log(`  Looking up: ${firstName} ${lastName} (${searchRegion})...`);
 
     // Step 1: Search for the person by name and region
     const searchResponse = await axios.get<EnrichLayerSearchResult>(
@@ -130,7 +131,7 @@ export async function lookupLinkedInProfile(
         params: {
           first_name: firstName,
           last_name: lastName,
-          region: process.env.SEARCH_REGION || 'California',
+          region: searchRegion,
           page_size: 1
         },
         headers: {
@@ -208,7 +209,7 @@ export async function lookupLinkedInProfile(
       name: profile.full_name || `${firstName} ${lastName}`,
       currentTitle: titleToUse,
       currentCompany: companyToUse,
-      location: currentLocation || profile.location_str || location,
+      location: currentLocation || profile.location_str,
       linkedinUrl: linkedinProfileUrl,
       isTargetContact
     };
