@@ -139,7 +139,7 @@ export async function automateLinkedInConnect(
   console.log(`  Automating connection for ${profile.name}...`);
 
   const firstName = profile.firstName || profile.name.split(' ')[0];
-  const domain = profile.condensedSummary || profile.domain || 'your industry';
+  const summary = profile.condensedSummary || profile.domain || 'your industry';
 
   // Get message template from env and replace placeholders
   const messageTemplate = process.env.LINKEDIN_MESSAGE_TEMPLATE ||
@@ -147,9 +147,9 @@ export async function automateLinkedInConnect(
 
   const message = messageTemplate
     .replace(/\{\{firstName\}\}/g, firstName)
-    .replace(/\{\{domain\}\}/g, domain);
+    .replace(/\{\{summary\}\}/g, summary);
 
-  const script = generateLinkedInScript(firstName, domain, message);
+  const script = generateLinkedInScript(firstName, summary, message);
 
   console.log(`    Debug - Script length: ${script.length} chars`);
 
