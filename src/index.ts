@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import 'dotenv/config';
-import { readFileSync } from 'fs';
+import { readFileSync, writeFileSync } from 'fs';
 import { execSync } from 'child_process';
 import { Command } from 'commander';
 import { parseNameList } from './nameParser.js';
@@ -10,6 +10,8 @@ import { parseEventFromFileName } from './eventParser.js';
 import { automateLinkedInConnect } from './linkedinAutomation.js';
 
 const program = new Command();
+
+const BATCH_SIZE = parseInt(process.env.BATCH_SIZE || '10', 10);
 
 program
   .name('meetup-networker')
@@ -25,10 +27,22 @@ program
 
       // Read file
       const content = readFileSync(filePath, 'utf-8');
+      const allLines = content.split('\n');
 
       // Parse names
       const parsedNames = parseNameList(content);
-      console.log(`Found ${parsedNames.length} names\n`);
+      console.log(`Found ${parsedNames.length} names in file\n`);
+
+      // Take first 10 names for processing
+      const namesToProcess = parsedNames.slice(0, BATCH_SIZE);
+      const remainingNames = parsedNames.slice(BATCH_SIZE);
+
+      console.log(`Processing ${namesToProcess.length} names in this batch`);
+      if (remainingNames.length > 0) {
+        console.log(`${remainingNames.length} names will remain in file for next batch\n`);
+      } else {
+        console.log(`This is the final batch\n`);
+      }
 
       // Check credit balance before processing
       console.log('Checking credit balance...');
@@ -41,7 +55,7 @@ program
 
       // Lookup profiles
       console.log('Looking up LinkedIn profiles...\n');
-      const profiles = await lookupProfiles(parsedNames, eventInfo.eventName);
+      const profiles = await lookupProfiles(namesToProcess, eventInfo.eventName);
 
       // Check credit balance after processing
       console.log('\nChecking credit balance...');
@@ -149,6 +163,18 @@ program
 
         console.log('\n✅ Automation complete! Review the connection requests and send when ready.');
       }
+
+      // Update file with remaining names
+      if (remainingNames.length > 0) {
+        console.log(`\n📝 Updating file with ${remainingNames.length} remaining names...`);
+        const remainingContent = remainingNames.map(n => n.original).join('\n') + '\n';
+        writeFileSync(filePath, remainingContent, 'utf-8');
+        console.log(`✅ File updated. Run again to process next batch.`);
+      } else {
+        console.log(`\n🎉 All names processed! File is now empty.`);
+        writeFileSync(filePath, '', 'utf-8');
+      }
+
     } catch (error) {
       if (error instanceof Error) {
         console.error(`Error: ${error.message}`);
