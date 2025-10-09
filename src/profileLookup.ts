@@ -13,11 +13,13 @@ const TARGET_CONTACT_PATTERN = new RegExp(
 
 export interface LinkedInProfile {
   name: string;
+  firstName?: string;
   currentTitle?: string;
   currentCompany?: string;
   location?: string;
   linkedinUrl?: string;
   isTargetContact?: boolean;
+  domain?: string;
   error?: string;
 }
 
@@ -53,6 +55,7 @@ interface EnrichLayerProfileResult {
   full_name?: string;
   occupation?: string;
   location_str?: string;
+  summary?: string;
   experiences?: EnrichLayerExperience[];
 }
 
@@ -216,6 +219,7 @@ export async function lookupLinkedInProfile(
 
     const result: LinkedInProfile = {
       name: profile.full_name || `${firstName} ${lastName}`,
+      firstName: firstName,
       currentTitle: titleToUse,
       currentCompany: companyToUse,
       location: currentLocation || profile.location_str,

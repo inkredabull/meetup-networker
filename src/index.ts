@@ -7,6 +7,7 @@ import { Command } from 'commander';
 import { parseNameList } from './nameParser.js';
 import { lookupProfiles, getCreditBalance } from './profileLookup.js';
 import { parseEventFromFileName } from './eventParser.js';
+import { automateLinkedInConnect } from './linkedinAutomation.js';
 
 const program = new Command();
 
@@ -97,6 +98,17 @@ program
       if (targetContactsWithUrls.length > 0) {
         console.log(`\nOpening ${targetContactsWithUrls.length} LinkedIn profile(s) in Chrome...`);
 
+        // Get the current number of tabs in Chrome before opening new ones
+        let startingTabCount = 1;
+        try {
+          const tabCountScript = `osascript -e 'tell application "Google Chrome" to count tabs of front window'`;
+          const result = execSync(tabCountScript, { encoding: 'utf-8' }).trim();
+          startingTabCount = parseInt(result, 10);
+        } catch (error) {
+          console.log('  Note: Could not detect existing tab count, assuming 1');
+        }
+
+        // Open each profile in a new tab
         for (let i = 0; i < targetContactsWithUrls.length; i++) {
           const profile = targetContactsWithUrls[i];
 
@@ -104,14 +116,35 @@ program
           execSync(`open -a "Google Chrome" "${profile.linkedinUrl}"`, { stdio: 'ignore' });
           console.log(`  Opened: ${profile.name}`);
 
-          // Add random delay between 750ms and 3000ms (except for last one)
+          // Add random delay between 1250ms and 3000ms (except for last one)
           if (i < targetContactsWithUrls.length - 1) {
-            const delay = Math.floor(Math.random() * (3000 - 750 + 1)) + 750;
+            const delay = Math.floor(Math.random() * (3000 - 1250 + 1)) + 1250;
             await new Promise(resolve => setTimeout(resolve, delay));
           }
         }
 
         console.log('\nFinished opening LinkedIn profiles.');
+
+        // Wait a bit for all pages to start loading
+        console.log('\n🤖 Starting automation in 3 seconds...\n');
+        await new Promise(resolve => setTimeout(resolve, 3000));
+
+        // Inject JavaScript into each opened tab
+        console.log('Injecting JavaScript into tabs...\n');
+        for (let i = 0; i < targetContactsWithUrls.length; i++) {
+          const profile = targetContactsWithUrls[i];
+          const tabIndex = startingTabCount + i + 1; // +1 because AppleScript tabs are 1-indexed
+
+          await automateLinkedInConnect(profile, tabIndex);
+
+          // Add delay between injections
+          if (i < targetContactsWithUrls.length - 1) {
+            const delay = Math.floor(Math.random() * (1500 - 800 + 1)) + 800;
+            await new Promise(resolve => setTimeout(resolve, delay));
+          }
+        }
+
+        console.log('\n✅ Automation complete! Review the connection requests and send when ready.');
       }
     } catch (error) {
       if (error instanceof Error) {
