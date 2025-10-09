@@ -4,14 +4,44 @@ import { LinkedInProfile } from './profileLookup.js';
 /**
  * Generate JavaScript code to automate LinkedIn connection flow
  */
-function generateLinkedInScript(firstName: string, domain: string): string {
+function generateLinkedInScript(firstName: string, domain: string, message: string): string {
+  // Escape the message for JavaScript string
+  const escapedMessage = message
+    .replace(/\\/g, '\\\\')
+    .replace(/"/g, '\\"')
+    .replace(/\n/g, '\\n')
+    .replace(/\r/g, '\\r');
+
   // Build the script without template literals to avoid escaping issues
   const script = [
     '(function() {',
-    '  var btn = document.querySelector("button[aria-label^=\\"Invite\\"]");',
-    '  if (btn) {',
-    '    btn.click();',
+    '  var connectBtn = document.querySelector("button[aria-label^=\\"Invite\\"]");',
+    '  if (connectBtn) {',
+    '    connectBtn.click();',
     '    console.log("Clicked Connect button");',
+    '    setTimeout(function() {',
+    '      var buttons = Array.from(document.querySelectorAll("button"));',
+    '      var addNoteBtn = buttons.find(function(b) {',
+    '        return b.innerText && b.innerText.toLowerCase().includes("add a note");',
+    '      });',
+    '      if (addNoteBtn) {',
+    '        addNoteBtn.click();',
+    '        console.log("Clicked Add a note button");',
+    '        setTimeout(function() {',
+    '          var textarea = document.querySelector("textarea[name=\\"message\\"]");',
+    '          if (textarea) {',
+    `            textarea.value = "${escapedMessage}";`,
+    '            textarea.dispatchEvent(new Event("input", { bubbles: true }));',
+    '            textarea.dispatchEvent(new Event("change", { bubbles: true }));',
+    '            console.log("Filled in message");',
+    '          } else {',
+    '            console.log("Message textarea not found");',
+    '          }',
+    '        }, 1000);',
+    '      } else {',
+    '        console.log("Add a note button not found");',
+    '      }',
+    '    }, 1500);',
     '  } else {',
     '    console.log("Connect button not found");',
     '  }',
@@ -68,7 +98,15 @@ export async function automateLinkedInConnect(
   const firstName = profile.firstName || profile.name.split(' ')[0];
   const domain = profile.domain || 'your industry';
 
-  const script = generateLinkedInScript(firstName, domain);
+  // Get message template from env and replace placeholders
+  const messageTemplate = process.env.LINKEDIN_MESSAGE_TEMPLATE ||
+    'Hi {{firstName}}, looking forward to connecting!';
+
+  const message = messageTemplate
+    .replace(/\{\{firstName\}\}/g, firstName)
+    .replace(/\{\{domain\}\}/g, domain);
+
+  const script = generateLinkedInScript(firstName, domain, message);
 
   console.log(`    Debug - Script length: ${script.length} chars`);
 
