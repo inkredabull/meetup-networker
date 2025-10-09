@@ -78,6 +78,9 @@ program
             console.log(`   Current Company: ${profile.currentCompany}`);
           }
           console.log(`   Location: ${profile.location || 'N/A'}`);
+          if (profile.condensedSummary) {
+            console.log(`   Domain: ${profile.condensedSummary}`);
+          }
           if (profile.summary) {
             console.log(`   Summary: ${profile.summary}`);
           }

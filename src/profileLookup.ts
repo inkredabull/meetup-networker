@@ -1,4 +1,5 @@
 import axios from 'axios';
+import OpenAI from 'openai';
 import { ParsedName } from './nameParser.js';
 import { getCachedLookup, saveLookupToCache } from './cache.js';
 
@@ -21,6 +22,7 @@ export interface LinkedInProfile {
   isTargetContact?: boolean;
   domain?: string;
   summary?: string;
+  condensedSummary?: string;
   error?: string;
 }
 
@@ -89,6 +91,42 @@ export async function getCreditBalance(): Promise<number | null> {
       console.error('Failed to fetch credit balance');
     }
     return null;
+  }
+}
+
+/**
+ * Condense a LinkedIn summary to maximum 4 words using OpenAI
+ */
+async function condenseSummary(summary: string): Promise<string | undefined> {
+  const apiKey = process.env.OPENAI_API_KEY;
+
+  if (!apiKey || apiKey === 'your_openai_api_key_here') {
+    return undefined;
+  }
+
+  try {
+    const openai = new OpenAI({ apiKey });
+
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content: 'You condense LinkedIn profile summaries into exactly 4 words or less that capture the essence of the person\'s professional identity. Return only the condensed phrase, nothing else.'
+        },
+        {
+          role: 'user',
+          content: `Condense this LinkedIn summary to 4 words or less: ${summary}`
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 20
+    });
+
+    return response.choices[0]?.message?.content?.trim();
+  } catch (error) {
+    console.error('Failed to condense summary with OpenAI:', error instanceof Error ? error.message : 'Unknown error');
+    return undefined;
   }
 }
 
@@ -218,6 +256,12 @@ export async function lookupLinkedInProfile(
     const combinedText = `${titleToUse} ${companyToUse || ''}`;
     const isTargetContact = TARGET_CONTACT_PATTERN.test(combinedText);
 
+    // Condense summary using OpenAI if available
+    let condensed: string | undefined;
+    if (profile.summary) {
+      condensed = await condenseSummary(profile.summary);
+    }
+
     const result: LinkedInProfile = {
       name: profile.full_name || `${firstName} ${lastName}`,
       firstName: firstName,
@@ -226,7 +270,8 @@ export async function lookupLinkedInProfile(
       location: currentLocation || profile.location_str,
       linkedinUrl: linkedinProfileUrl,
       isTargetContact,
-      summary: profile.summary
+      summary: profile.summary,
+      condensedSummary: condensed
     };
 
     // Save successful lookup to cache
