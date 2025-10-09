@@ -79,10 +79,7 @@ program
           }
           console.log(`   Location: ${profile.location || 'N/A'}`);
           if (profile.condensedSummary) {
-            console.log(`   Domain: ${profile.condensedSummary}`);
-          }
-          if (profile.summary) {
-            console.log(`   Summary: ${profile.summary}`);
+            console.log(`   Summary: ${profile.condensedSummary}`);
           }
           if (profile.linkedinUrl) {
             console.log(`   LinkedIn: ${profile.linkedinUrl}`);

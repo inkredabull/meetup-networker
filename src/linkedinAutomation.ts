@@ -141,6 +141,8 @@ export async function automateLinkedInConnect(
   const firstName = profile.firstName || profile.name.split(' ')[0];
   const summary = profile.condensedSummary || profile.domain || 'your industry';
 
+  console.log(`    Using summary: "${summary}"`);
+
   // Get message template from env and replace placeholders
   const messageTemplate = process.env.LINKEDIN_MESSAGE_TEMPLATE ||
     'Hi {{firstName}}, looking forward to connecting!';

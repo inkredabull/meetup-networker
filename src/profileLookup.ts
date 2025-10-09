@@ -259,7 +259,15 @@ export async function lookupLinkedInProfile(
     // Condense summary using OpenAI if available
     let condensed: string | undefined;
     if (profile.summary) {
+      console.log(`  Condensing summary with OpenAI...`);
       condensed = await condenseSummary(profile.summary);
+      if (condensed) {
+        console.log(`  ✓ Condensed to: "${condensed}"`);
+      } else {
+        console.log(`  ⚠️  OpenAI condensation failed or API key not configured`);
+      }
+    } else {
+      console.log(`  ⚠️  No summary available from EnrichLayer to condense`);
     }
 
     const result: LinkedInProfile = {
