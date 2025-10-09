@@ -11,6 +11,7 @@ A TypeScript CLI tool that parses a list of names and looks up LinkedIn profiles
 - Filters by city (San Francisco)
 - Automatically detects event name from filename
 - **Target contact filtering** - Identifies VCs, CEOs, Partners, and Investors for follow-up
+- **Auto-open LinkedIn profiles** - Opens target contact profiles in Chrome with randomized delays
 - **Local caching** - Saves lookups to avoid burning credits on repeated queries
 - **Credit tracking** - Shows before/after credit balance and cost
 
@@ -108,6 +109,17 @@ The tool automatically identifies high-priority contacts based on their job titl
    LinkedIn: https://www.linkedin.com/in/janesmith
    Status: ⏭️  SKIP - Does not match target pattern
 ```
+
+## Auto-Open LinkedIn Profiles
+
+After displaying results, the tool automatically opens LinkedIn profiles for all target contacts in Google Chrome. This saves time by eliminating manual clicking through each profile.
+
+**Key Features:**
+- Opens only target contact profiles (those marked with ⭐)
+- Uses randomized delays (750ms - 3000ms) between each profile to avoid rate limiting
+- Shows progress as each profile is opened
+
+This feature runs automatically at the end of each session, opening tabs for all identified high-priority contacts.
 
 ## Caching
 

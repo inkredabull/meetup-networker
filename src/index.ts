@@ -2,6 +2,7 @@
 
 import 'dotenv/config';
 import { readFileSync } from 'fs';
+import { execSync } from 'child_process';
 import { Command } from 'commander';
 import { parseNameList } from './nameParser.js';
 import { lookupProfiles, getCreditBalance } from './profileLookup.js';
@@ -90,6 +91,28 @@ program
 
       console.log(`Successfully processed ${profiles.length} profiles`);
       console.log(`Target contacts to follow up: ${targetContacts.length}/${profiles.length}`);
+
+      // Open LinkedIn profiles in Chrome for target contacts
+      const targetContactsWithUrls = targetContacts.filter(p => p.linkedinUrl);
+      if (targetContactsWithUrls.length > 0) {
+        console.log(`\nOpening ${targetContactsWithUrls.length} LinkedIn profile(s) in Chrome...`);
+
+        for (let i = 0; i < targetContactsWithUrls.length; i++) {
+          const profile = targetContactsWithUrls[i];
+
+          // Open LinkedIn URL in Chrome
+          execSync(`open -a "Google Chrome" "${profile.linkedinUrl}"`, { stdio: 'ignore' });
+          console.log(`  Opened: ${profile.name}`);
+
+          // Add random delay between 750ms and 3000ms (except for last one)
+          if (i < targetContactsWithUrls.length - 1) {
+            const delay = Math.floor(Math.random() * (3000 - 750 + 1)) + 750;
+            await new Promise(resolve => setTimeout(resolve, delay));
+          }
+        }
+
+        console.log('\nFinished opening LinkedIn profiles.');
+      }
     } catch (error) {
       if (error instanceof Error) {
         console.error(`Error: ${error.message}`);
