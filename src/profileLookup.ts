@@ -20,6 +20,7 @@ export interface LinkedInProfile {
   linkedinUrl?: string;
   isTargetContact?: boolean;
   domain?: string;
+  summary?: string;
   error?: string;
 }
 
@@ -224,7 +225,8 @@ export async function lookupLinkedInProfile(
       currentCompany: companyToUse,
       location: currentLocation || profile.location_str,
       linkedinUrl: linkedinProfileUrl,
-      isTargetContact
+      isTargetContact,
+      summary: profile.summary
     };
 
     // Save successful lookup to cache
