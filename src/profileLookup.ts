@@ -256,18 +256,16 @@ export async function lookupLinkedInProfile(
     const combinedText = `${titleToUse} ${companyToUse || ''}`;
     const isTargetContact = TARGET_CONTACT_PATTERN.test(combinedText);
 
-    // Condense summary using OpenAI if available
+    // Condense summary using OpenAI only for target contacts
     let condensed: string | undefined;
-    if (profile.summary) {
-      console.log(`  Condensing summary with OpenAI...`);
+    if (isTargetContact && profile.summary) {
+      console.log(`  ⭐ Target contact - Condensing summary with OpenAI...`);
       condensed = await condenseSummary(profile.summary);
       if (condensed) {
         console.log(`  ✓ Condensed to: "${condensed}"`);
       } else {
         console.log(`  ⚠️  OpenAI condensation failed or API key not configured`);
       }
-    } else {
-      console.log(`  ⚠️  No summary available from EnrichLayer to condense`);
     }
 
     const result: LinkedInProfile = {
