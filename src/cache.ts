@@ -121,37 +121,46 @@ export function saveLookupToCache(
  * Returns an array of LinkedInProfile objects (without cachedAt metadata)
  */
 export function loadAllCachedProfiles(eventName: string): LinkedInProfile[] {
-  const eventDir = join(CACHE_DIR, normalizeEventName(eventName));
+  const normalizedName = normalizeEventName(eventName);
+  const eventDir = join(CACHE_DIR, normalizedName);
+  
+  // Also try with -csv suffix (for backwards compatibility with old cache directories)
+  const eventDirWithCsv = join(CACHE_DIR, `${normalizedName}-csv`);
 
-  if (!existsSync(eventDir)) {
-    return [];
-  }
+  // Try the normalized name first, then try with -csv suffix
+  const dirsToTry = [eventDir, eventDirWithCsv];
+  
+  for (const dir of dirsToTry) {
+    if (existsSync(dir)) {
+      const profiles: LinkedInProfile[] = [];
 
-  const profiles: LinkedInProfile[] = [];
-
-  try {
-    const files = readdirSync(eventDir)
-      .filter(file => file.endsWith('.json'));
-
-    for (const file of files) {
-      const cacheFile = join(eventDir, file);
       try {
-        const data = readFileSync(cacheFile, 'utf-8');
-        const cached: LinkedInProfile & { cachedAt?: string } = JSON.parse(data);
+        const files = readdirSync(dir)
+          .filter(file => file.endsWith('.json'));
 
-        // Remove cachedAt metadata before returning
-        const { cachedAt, ...profile } = cached;
-        profiles.push(profile);
+        for (const file of files) {
+          const cacheFile = join(dir, file);
+          try {
+            const data = readFileSync(cacheFile, 'utf-8');
+            const cached: LinkedInProfile & { cachedAt?: string } = JSON.parse(data);
+
+            // Remove cachedAt metadata before returning
+            const { cachedAt, ...profile } = cached;
+            profiles.push(profile);
+          } catch (error) {
+            // Skip invalid cache files
+            console.warn(`  Warning: Could not read cache file ${file}`);
+            continue;
+          }
+        }
+        
+        return profiles;
       } catch (error) {
-        // Skip invalid cache files
-        console.warn(`  Warning: Could not read cache file ${file}`);
+        console.warn(`  Warning: Could not read cache directory ${dir}`);
         continue;
       }
     }
-  } catch (error) {
-    console.warn(`  Warning: Could not read cache directory for event ${eventName}`);
-    return [];
   }
 
-  return profiles;
+  return [];
 }
