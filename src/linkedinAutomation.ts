@@ -134,7 +134,8 @@ end tell`;
  */
 export async function automateLinkedInConnect(
   profile: LinkedInProfile,
-  tabIndex: number
+  tabIndex: number,
+  eventName: string
 ): Promise<void> {
   console.log(`  Automating connection for ${profile.name}...`);
 
@@ -149,7 +150,8 @@ export async function automateLinkedInConnect(
 
   const message = messageTemplate
     .replace(/\{\{firstName\}\}/g, firstName)
-    .replace(/\{\{summary\}\}/g, summary);
+    .replace(/\{\{summary\}\}/g, summary)
+    .replace(/\{\{event\}\}/g, eventName);
 
   const script = generateLinkedInScript(firstName, summary, message);
 

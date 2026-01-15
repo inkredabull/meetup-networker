@@ -115,3 +115,43 @@ export function saveLookupToCache(
     console.warn(`  Warning: Could not save cache for ${firstName} ${lastName}`);
   }
 }
+
+/**
+ * Load all cached profiles for a given event
+ * Returns an array of LinkedInProfile objects (without cachedAt metadata)
+ */
+export function loadAllCachedProfiles(eventName: string): LinkedInProfile[] {
+  const eventDir = join(CACHE_DIR, normalizeEventName(eventName));
+
+  if (!existsSync(eventDir)) {
+    return [];
+  }
+
+  const profiles: LinkedInProfile[] = [];
+
+  try {
+    const files = readdirSync(eventDir)
+      .filter(file => file.endsWith('.json'));
+
+    for (const file of files) {
+      const cacheFile = join(eventDir, file);
+      try {
+        const data = readFileSync(cacheFile, 'utf-8');
+        const cached: LinkedInProfile & { cachedAt?: string } = JSON.parse(data);
+
+        // Remove cachedAt metadata before returning
+        const { cachedAt, ...profile } = cached;
+        profiles.push(profile);
+      } catch (error) {
+        // Skip invalid cache files
+        console.warn(`  Warning: Could not read cache file ${file}`);
+        continue;
+      }
+    }
+  } catch (error) {
+    console.warn(`  Warning: Could not read cache directory for event ${eventName}`);
+    return [];
+  }
+
+  return profiles;
+}

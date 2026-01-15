@@ -8,6 +8,7 @@ import { parseNameList } from './nameParser.js';
 import { lookupProfiles, getCreditBalance } from './profileLookup.js';
 import { parseEventFromFileName } from './eventParser.js';
 import { automateLinkedInConnect } from './linkedinAutomation.js';
+import { loadAllCachedProfiles } from './cache.js';
 
 const program = new Command();
 
@@ -33,50 +34,77 @@ program
       const parsedNames = parseNameList(content);
       console.log(`Found ${parsedNames.length} names in file\n`);
 
-      // Take first 10 names for processing
-      const namesToProcess = parsedNames.slice(0, BATCH_SIZE);
-      const remainingNames = parsedNames.slice(BATCH_SIZE);
+      let profiles: Awaited<ReturnType<typeof lookupProfiles>> = [];
+      let balanceBefore: number | null = null;
+      let balanceAfter: number | null = null;
+      let remainingNames: typeof parsedNames = [];
 
-      console.log(`Processing ${namesToProcess.length} names in this batch`);
-      if (remainingNames.length > 0) {
-        console.log(`${remainingNames.length} names will remain in file for next batch\n`);
+      // If file is empty, check for cached target contacts
+      if (parsedNames.length === 0) {
+        console.log('File is empty. Checking for cached target contacts...\n');
+        const cachedProfiles = loadAllCachedProfiles(eventInfo.eventName);
+        const targetContacts = cachedProfiles.filter(
+          p => p.isTargetContact && !p.error && p.linkedinUrl
+        );
+
+        if (targetContacts.length > 0) {
+          console.log(`Found ${targetContacts.length} cached target contact(s) for this event\n`);
+          profiles = targetContacts;
+        } else {
+          console.log('No cached target contacts found for this event.\n');
+        }
       } else {
-        console.log(`This is the final batch\n`);
+        // Take first 10 names for processing
+        const namesToProcess = parsedNames.slice(0, BATCH_SIZE);
+        remainingNames = parsedNames.slice(BATCH_SIZE);
+
+        console.log(`Processing ${namesToProcess.length} names in this batch`);
+        if (remainingNames.length > 0) {
+          console.log(`${remainingNames.length} names will remain in file for next batch\n`);
+        } else {
+          console.log(`This is the final batch\n`);
+        }
+
+        // Check credit balance before processing
+        console.log('Checking credit balance...');
+        balanceBefore = await getCreditBalance();
+        if (balanceBefore !== null && balanceBefore !== undefined) {
+          console.log(`Credit balance before: ${balanceBefore} credits\n`);
+        } else {
+          console.log('Unable to fetch credit balance\n');
+        }
+
+        // Lookup profiles
+        console.log('Looking up LinkedIn profiles...\n');
+        profiles = await lookupProfiles(namesToProcess, eventInfo.eventName);
       }
 
-      // Check credit balance before processing
-      console.log('Checking credit balance...');
-      const balanceBefore = await getCreditBalance();
-      if (balanceBefore !== null && balanceBefore !== undefined) {
-        console.log(`Credit balance before: ${balanceBefore} credits\n`);
-      } else {
-        console.log('Unable to fetch credit balance\n');
-      }
+      // Check credit balance after processing (only if we did lookups)
+      if (parsedNames.length > 0) {
+        console.log('\nChecking credit balance...');
+        balanceAfter = await getCreditBalance();
+        if (balanceAfter !== null && balanceAfter !== undefined) {
+          console.log(`Credit balance after: ${balanceAfter} credits`);
+        } else {
+          console.log('Unable to fetch credit balance');
+        }
 
-      // Lookup profiles
-      console.log('Looking up LinkedIn profiles...\n');
-      const profiles = await lookupProfiles(namesToProcess, eventInfo.eventName);
-
-      // Check credit balance after processing
-      console.log('\nChecking credit balance...');
-      const balanceAfter = await getCreditBalance();
-      if (balanceAfter !== null && balanceAfter !== undefined) {
-        console.log(`Credit balance after: ${balanceAfter} credits`);
-      } else {
-        console.log('Unable to fetch credit balance');
-      }
-
-      // Calculate cost
-      if (balanceBefore !== null && balanceBefore !== undefined &&
-          balanceAfter !== null && balanceAfter !== undefined) {
-        const cost = balanceBefore - balanceAfter;
-        console.log(`\nCost: ${cost} credits used\n`);
-      } else {
-        console.log('\nCost: Unable to calculate (credit balance unavailable)\n');
+        // Calculate cost
+        if (balanceBefore !== null && balanceBefore !== undefined &&
+            balanceAfter !== null && balanceAfter !== undefined) {
+          const cost = balanceBefore - balanceAfter;
+          console.log(`\nCost: ${cost} credits used\n`);
+        } else {
+          console.log('\nCost: Unable to calculate (credit balance unavailable)\n');
+        }
       }
 
       // Display results
-      console.log(`=== ${eventInfo.eventName} - Results ===\n`);
+      const isUsingCached = parsedNames.length === 0 && profiles.length > 0;
+      const resultsHeader = isUsingCached 
+        ? `=== ${eventInfo.eventName} - Cached Target Contacts ===`
+        : `=== ${eventInfo.eventName} - Results ===`;
+      console.log(`${resultsHeader}\n`);
 
       // Count target contacts
       const targetContacts = profiles.filter(p => p.isTargetContact);
@@ -152,7 +180,7 @@ program
           const profile = targetContactsWithUrls[i];
           const tabIndex = startingTabCount + i + 1; // +1 because AppleScript tabs are 1-indexed
 
-          await automateLinkedInConnect(profile, tabIndex);
+          await automateLinkedInConnect(profile, tabIndex, eventInfo.eventName);
 
           // Add delay between injections
           if (i < targetContactsWithUrls.length - 1) {
@@ -164,15 +192,20 @@ program
         console.log('\n✅ Automation complete! Review the connection requests and send when ready.');
       }
 
-      // Update file with remaining names
-      if (remainingNames.length > 0) {
-        console.log(`\n📝 Updating file with ${remainingNames.length} remaining names...`);
-        const remainingContent = remainingNames.map(n => n.original).join('\n') + '\n';
-        writeFileSync(filePath, remainingContent, 'utf-8');
-        console.log(`✅ File updated. Run again to process next batch.`);
-      } else {
-        console.log(`\n🎉 All names processed! File is now empty.`);
-        writeFileSync(filePath, '', 'utf-8');
+      // Update file with remaining names (only if we processed names from file)
+      if (parsedNames.length > 0) {
+        const namesToProcess = parsedNames.slice(0, BATCH_SIZE);
+        const remainingNames = parsedNames.slice(BATCH_SIZE);
+
+        if (remainingNames.length > 0) {
+          console.log(`\n📝 Updating file with ${remainingNames.length} remaining names...`);
+          const remainingContent = remainingNames.map(n => n.original).join('\n') + '\n';
+          writeFileSync(filePath, remainingContent, 'utf-8');
+          console.log(`✅ File updated. Run again to process next batch.`);
+        } else {
+          console.log(`\n🎉 All names processed! File is now empty.`);
+          writeFileSync(filePath, '', 'utf-8');
+        }
       }
 
     } catch (error) {
